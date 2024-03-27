@@ -3,10 +3,12 @@ import pandas as pd
 
 
 
-def Data_Loader(train_path,test_path,label_path,BatchSize,width=800,height=600,):
+
+def Data_Loader(train_path,test_path,label_path,BatchSize=16,width=800,height=600,):
 
 
     labels = pd.read_csv(label_path)
+    labels['label'] = labels['label'].astype(str)
 
     datagen = ImageDataGenerator(rescale=1./255,validation_split=0.2)
 
@@ -19,7 +21,7 @@ def Data_Loader(train_path,test_path,label_path,BatchSize,width=800,height=600,)
 
     testgen = ImageDataGenerator(rescale=1./255)
 
-    test_generator = datagen.flow_from_dataframe(dataframe=labels, directory=test_path, x_col='image_id', y_col='label',
+    test_generator = testgen.flow_from_dataframe(dataframe=labels, directory=test_path, x_col='image_id', y_col='label',
                                                 batch_size=BatchSize, seed=77, shuffle=False,
                                                 class_mode=None, target_size=(height, width))
 

@@ -6,6 +6,8 @@ import tensorflow as tf
 from Model_Evaluation import Model_Evaluation
 
 
+
+
 def main():
     images_path = './Datasets/images/'
     label_path = './Datasets/labels.csv'
@@ -20,18 +22,30 @@ def main():
     train_path = './NewDatasets/train'
     test_path = './NewDatasets/test'
     train_generator,val_generator,test_generator=Data_Loader(train_path,test_path,
-                                                             label_path,height=128,width=128)
+                                                             label_path,height=300,width=300)
 
-    model = Models(train_generator,val_generator,test_generator)
+    model = Models(train_generator,val_generator,test_generator,300,300)
     # 判断是否已经存在训练好的模型文件
-    if not os.path.exists(os.path.join(os.getcwd(),'SamCNN.model')):
-        model.SamCNN()
-
+    # if not os.path.exists(os.path.join(os.getcwd(),'SamCNN.model')):
+    #     model.SamCNN()
+    if not os.path.exists(os.path.join(os.getcwd(),'VGG19.model')):
+        model.VGG19()
+    # if not os.path.exists(os.path.join(os.getcwd(),'EfficientNetB3.model')):
+    #     model.EfficientNetB3()
+    # model.EfficientNetB3()
+    model.VGG19()
 
     # 模型评估
     test_label_path = './NewDatasets/test_labels.csv'
-    model_path = './SamCNN.model'
-    Model_Evaluation(test_generator,model_path,test_label_path)
+    samcnn_path = './SamCNN.model'
+    vgg19_path = './VGG19.model'
+    # efficientnetb3_path = './EfficientNetB3.model'
+    kaggle_path = './kaggle.model'
+
+    # Model_Evaluation(test_generator,samcnn_path,test_label_path)
+    # Model_Evaluation(test_generator,vgg19_path,test_label_path)
+    Model_Evaluation(test_generator,vgg19_path,test_label_path)
+
 
 
 

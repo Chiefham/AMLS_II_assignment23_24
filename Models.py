@@ -1,211 +1,117 @@
-import keras
-import tensorflow as tf
-from keras.layers import MaxPooling2D, Flatten, Dense
-from keras.layers import Conv2D, BatchNormalization, Dropout
-from sklearn.model_selection import GridSearchCV
-from cal_class_weight import cal_class_weight
+from keras.applications import EfficientNetB3
 from keras.applications.vgg19 import VGG19
-from keras.models import Model
-from keras.applications.efficientnet import EfficientNetB3
-from keras import layers, optimizers
-from keras import models, layers, optimizers
-
+import tensorflow as tf
+from keras.applications.vgg19 import VGG19
+from keras.callbacks import EarlyStopping
+from keras.layers import Dense, Dropout, GlobalAveragePooling2D, \
+    BatchNormalization, Activation
+from keras.losses import CategoricalCrossentropy
+from keras.models import Sequential
+from keras.applications.resnet_v2 import ResNet101V2
+from cal_class_weight import cal_class_weight
 
 
 class Models:
-    def __init__(self, train_generator, val_generator,test_generator, img_height=128, img_width=128):
+    def __init__(self, target_size_dim, train_generator, val_generator, epochs):
+        self.target_size_dim = target_size_dim
         self.train_generator = train_generator
         self.val_generator = val_generator
-        self.test_generator = test_generator
-        self.img_height = img_height
-        self.img_width = img_width
+        self.epochs = epochs
+        self.class_weights_dict = cal_class_weight(train_generator)
 
-    def EfficientNetB3(self):
-        model = models.Sequential()
-        model.add(EfficientNetB3(include_top=False, weights='imagenet',
-                                 input_shape=(self.img_height,
-                                              self.img_width, 3),
-                                 drop_connect_rate=0.3))
-        model.add(layers.GlobalAveragePooling2D())
-        model.add(layers.Flatten())
-        model.add(layers.Dense(256, activation='relu'))
-        model.add(layers.Dropout(0.3))
-        model.add(layers.Dense(5, activation='softmax'))
-
-        loss = tf.keras.losses.CategoricalCrossentropy(
-            label_smoothing=0.0001,
-            name='categorical_crossentropy'
-        )
-
-        optimizer = optimizers.Adam(learning_rate=1e-4)
-
-        model.compile(
+    def Model(self, base_model, optimizer, loss='categorical_crossentropy',
+              metrics=['categorical_accuracy']):
+        my_model = Sequential()
+        my_model.add(base_model)
+        my_model.add(GlobalAveragePooling2D())
+        my_model.add(Dense(256))
+        my_model.add(BatchNormalization())
+        my_model.add(Activation('relu'))
+        my_model.add(Dropout(0.3))
+        my_model.add(Dense(5, activation='softmax'))
+        my_model.compile(
             optimizer=optimizer,
-            loss=loss,
-            metrics=['categorical_accuracy']
+            loss=CategoricalCrossentropy(label_smoothing=0.05),
+            metrics=metrics
         )
+        return my_model
 
-        # model.build((None))
+    def EfficientNetB3(self, drop_connect=0.4,
+                       layers_to_unfreeze=5):
+        model = EfficientNetB3(
+            weights='imagenet',
+            include_top=False,
+            input_shape=(self.target_size_dim, self.target_size_dim, 3),
+            drop_connect_rate=0.4
+        )
+        model.trainable = True
 
-        Steps_per_train = float(self.train_generator.n) / self.train_generator.batch_size
-        Steps_per_val = float(self.val_generator.n) / self.val_generator.batch_size
+        optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+        my_model = self.Model(model, optimizer)
 
-        rlronp = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
-                                                      factor=0.2,
-                                                      mode="min",
-                                                      min_lr=1e-6,
-                                                      patience=2,
-                                                      verbose=1)
+        # fit
+        early = EarlyStopping(monitor='val_loss',
+                              mode='min',
+                              patience=2)
 
-        estop = tf.keras.callbacks.EarlyStopping(monitor="val_loss",
-                                                 mode="min",
-                                                 patience=3,
-                                                 verbose=1,
-                                                 restore_best_weights=True)
-
-        model.fit(
+        my_model.fit(
             self.train_generator,
-            steps_per_epoch=int(Steps_per_train),
-            epochs=5,
-            verbose=1,
             validation_data=self.val_generator,
-            validation_steps=int(Steps_per_val),
-            callbacks=[rlronp, estop]
-
+            epochs=self.epochs,
+            callbacks=[early],
+            # class_weight=self.class_weights_dict
         )
 
-        model.save('EfficientNetB3.model')
+        my_model.save('EfficientNetB3.model')
 
-    def VGG19(self):
-        model_vgg19 = VGG19(
-            weights="imagenet", include_top=False,
-            input_shape=(self.img_height, self.img_width, 3)
+    def VGG19(self,drop_connect=0.4,layers_to_unfreeze=5):
+        model = VGG19(
+            weights='imagenet',
+            include_top=False,
+            input_shape=(self.target_size_dim, self.target_size_dim, 3),
         )
-        for layer in model_vgg19.layers[:-1]:
-            layer.trainable = False
-        top_model = models.Sequential()
-        top_model.add(Flatten(input_shape=model_vgg19.output_shape[1:]))
-        top_model.add(Dense(32, activation='relu'))
-        top_model.add(Dropout(0.5))
-        top_model.add(Dense(5, activation='softmax'))
-        model = Model(
-            inputs=model_vgg19.input,
-            outputs=top_model(model_vgg19.output)
-        )
-        model.compile(
-            loss='categorical_crossentropy',
-            optimizer=tf.keras.optimizers.Adam(lr=0.001),
-            metrics=['accuracy']
-        )
-        callback = keras.callbacks.EarlyStopping(monitor='val_accuracy',
-                                                 patience=2)
+        model.trainable = True
 
-        Steps_per_train = float(self.train_generator.n) / self.train_generator.batch_size
-        Steps_per_val = float(self.val_generator.n) / self.val_generator.batch_size
+        optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+        my_model = self.Model(model, optimizer)
 
-        rlronp = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
-                                                      factor=0.2,
-                                                      mode="min",
-                                                      min_lr=1e-6,
-                                                      patience=2,
-                                                      verbose=1)
+        # fit
+        early = EarlyStopping(monitor='val_loss',
+                              mode='min',
+                              patience=3)
 
-        estop = tf.keras.callbacks.EarlyStopping(monitor="val_loss",
-                                                 mode="min",
-                                                 patience=3,
-                                                 verbose=1,
-                                                 restore_best_weights=True)
-        class_weights = cal_class_weight('./NewDatasets/train_labels.csv')
-
-        model.fit(
+        my_model.fit(
             self.train_generator,
-            steps_per_epoch=int(Steps_per_train),
-            epochs=2,
-            verbose=1,
             validation_data=self.val_generator,
-            validation_steps=int(Steps_per_val),
-            callbacks=[rlronp, estop],
-            class_weight=class_weights
+            epochs=self.epochs,
+            callbacks=[early]
         )
 
-        model.save('VGG19.model')
+        my_model.save('VGG19.model')
 
-    def SamCNN(self):
-        model = models.Sequential()
-        # Conv Layer 1
-        model.add(Conv2D(filters=32, kernel_size=(5, 5),
-                         padding='same', activation=tf.nn.relu, input_shape=(128, 128, 3)))
-        model.add(BatchNormalization())
-        model.add(MaxPooling2D(pool_size=(3, 3)))
-
-        # Conv Layer 2
-        model.add(Conv2D(filters=64, kernel_size=(3, 3), padding='same', activation=tf.nn.relu))
-        model.add(BatchNormalization())
-        model.add(MaxPooling2D(pool_size=(3, 3)))
-
-        # Conv Layer 2
-        model.add(Conv2D(filters=128, kernel_size=(3, 3), padding='same', activation=tf.nn.relu))
-        model.add(BatchNormalization())
-        model.add(MaxPooling2D(pool_size=(3, 3)))
-
-        # Flattening
-        model.add(Flatten())
-
-        # FC
-        model.add(Dense(512, activation='relu'))
-        model.add(Dropout(0.5))
-        model.add(Dense(1025, activation='relu'))
-        model.add(Dropout(0.5))
-        model.add(Dense(256, activation='relu'))
-        model.add(Dropout(0.5))
-        model.add(Dense(256, activation='relu'))
-        model.add(Dropout(0.5))
-
-        # Output
-        model.add(Dense(5, activation='softmax'))
-
-        loss = tf.keras.losses.CategoticalCrossentropy(
-            label_smoothing=0.0001,
-            name='categotical_crossentropy',
-
+    def ResNet101V2(self):
+        model = ResNet101V2(
+            weights='imagenet',
+            include_top=False,
+            input_shape=(self.target_size_dim, self.target_size_dim, 3),
         )
+        model.trainable = True
 
-        optimizer = optimizers.Adam(learning_rate=1e-4)
+        optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+        my_model = self.Model(model, optimizer)
 
-        model.compile(
-            optimizer=optimizer,
-            loss=loss,
-            metrics=['categorical_accuracy']
-        )
+        # fit
+        early = EarlyStopping(monitor='val_loss',
+                              mode='min',
+                              patience=3)
 
-        model.build((None))
-
-        Steps_per_train = float(self.train_generator.n) / self.train_generator.batch_size
-        Steps_per_val = float(self.val_generator.n) / self.val_generator.batch_size
-
-        rlronp = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss",
-                                                      factor=0.2,
-                                                      mode="min",
-                                                      min_lr=1e-6,
-                                                      patience=2,
-                                                      verbose=1)
-
-        estop = tf.keras.callbacks.EarlyStopping(monitor="val_loss",
-                                                 mode="min",
-                                                 patience=3,
-                                                 verbose=1,
-                                                 restore_best_weights=True)
-
-        model.fit(
+        my_model.fit(
             self.train_generator,
-            steps_per_epoch=int(Steps_per_train),
-            epochs=5,
-            verbose=1,
             validation_data=self.val_generator,
-            validation_steps=int(Steps_per_val),
-            callbacks=[rlronp, estop]
-
+            epochs=self.epochs,
+            callbacks=[early]
         )
 
-        model.save('SamCNN.model')
+        my_model.save('ResNet101V2.model')
+
 

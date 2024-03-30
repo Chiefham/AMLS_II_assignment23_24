@@ -1,52 +1,44 @@
 from keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
-def Data_Loader(train_path, test_path, label_path, BatchSize=8, width=128,
-                height=128,):
-    labels = pd.read_csv(label_path)
-    labels['label'] = labels['label'].astype(str)
-
-    datagen = ImageDataGenerator(horizontal_flip=True, vertical_flip=True,
-                                 validation_split=0.2)
-
-    train_generator = datagen.flow_from_dataframe(
-        labels,
-        directory=train_path,
-        batch_size=BatchSize,
-        target_size=(height, width),
-        subset='training',
-        seed=42,
-        x_col='image_id',
-        y_col='label',
-        class_mode='categorical'
+def TrainGen(dataframe, target_size_dim, x_col, y_col, batch_size=8):
+    train_gen = ImageDataGenerator(
+        horizontal_flip=True,
+        vertical_flip=True,
+        height_shift_range=0.2,
+        width_shift_range=0.2,
+        brightness_range=[0.7, 1.5],
+        rotation_range=30,
+        shear_range=0.2,
+        fill_mode='nearest',
+        zoom_range=[0.3, 0.6],
     )
 
-    val_gen = ImageDataGenerator(
-        validation_split=0.2
-    )
+    train_generator = train_gen.flow_from_dataframe(
+        dataframe=dataframe,
+        x_col=x_col,
+        y_col=y_col,
+        class_mode="categorical",
+        target_size=(target_size_dim, target_size_dim),
+        color_mode='rgb',
+        batch_size=batch_size)
+
+    return train_generator
+
+
+def ValGen(dataframe, target_size_dim, x_col, y_col, batch_size=8):
+    val_gen = ImageDataGenerator()
 
     val_generator = val_gen.flow_from_dataframe(
-        labels,
-        directory=train_path,
-        batch_size=BatchSize,
-        target_size=(height, width),
-        subset="validation",
-        seed=42,
-        x_col="image_id",
-        y_col="label",
-        class_mode="categorical"
+        dataframe=dataframe,
+        x_col=x_col,
+        y_col=y_col,
+        class_mode="categorical",
+        target_size=(target_size_dim, target_size_dim),
+        batch_size=batch_size,
+        shuffle=False
     )
 
-    testgen = ImageDataGenerator(rescale=1./255)
-
-    test_generator = testgen.flow_from_dataframe(dataframe=labels,
-                                                 directory=test_path,
-                                                 x_col='image_id',
-                                                 y_col='label',
-                                                 batch_size=16, seed=42,
-                                                 shuffle=False,
-                                                 class_mode=None,
-                                                 target_size=(height, width))
-
-    return train_generator, val_generator, test_generator
+    return val_generator

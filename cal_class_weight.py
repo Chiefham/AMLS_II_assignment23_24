@@ -1,16 +1,12 @@
-import pandas as pd
-
-def cal_class_weight(train_csv_path,label_name='label'):
-
-    train_df = pd.read_csv(train_csv_path)
-    class_counts = train_df[label_name].value_counts().sort_index()
-
-    # 计算每个类别的权重
-    total_samples = train_df.shape[0]
-    class_weights = {}
-    for class_label, count in class_counts.items():
-        class_weights[class_label] = total_samples / (len(class_counts) * count)
-
-    return class_weights
+from sklearn.utils import class_weight
 
 
+def cal_class_weight(train_generator):
+    classes_to_predict = [0, 1, 2, 3, 4]
+    class_weights = class_weight.compute_class_weight(class_weight="balanced",
+                                                      classes=classes_to_predict,
+                                                      y=train_generator.labels)
+    class_weights_dict = {i: class_weights[i] for i, label in
+                          enumerate(classes_to_predict)}
+
+    print(class_weights_dict)

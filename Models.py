@@ -59,10 +59,10 @@ class Models:
             validation_data=self.val_generator,
             epochs=self.epochs,
             callbacks=[early],
-            # class_weight=self.class_weights_dict
+            class_weight=self.class_weights_dict
         )
 
-        my_model.save('EfficientNetB3.model')
+        my_model.save('EfficientNetB3_WB.model')
 
     def VGG19(self,drop_connect=0.4,layers_to_unfreeze=5):
         model = VGG19(
@@ -84,10 +84,11 @@ class Models:
             self.train_generator,
             validation_data=self.val_generator,
             epochs=self.epochs,
-            callbacks=[early]
+            callbacks=[early],
+            class_weight=self.class_weights_dict
         )
 
-        my_model.save('VGG19.model')
+        my_model.save('VGG19_WB.model')
 
     def ResNet101V2(self):
         model = ResNet101V2(
@@ -109,9 +110,10 @@ class Models:
             self.train_generator,
             validation_data=self.val_generator,
             epochs=self.epochs,
-            callbacks=[early]
+            callbacks=[early],
+            class_weight=self.class_weights_dict
         )
 
-        my_model.save('ResNet101V2.model')
+        my_model.save('ResNet101V2_WB.model')
 
 

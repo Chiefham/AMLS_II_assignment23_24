@@ -5,17 +5,15 @@ import numpy as np
 from sklearn.metrics import classification_report
 import pandas as pd
 from keras.utils import to_categorical
+from sklearn.metrics import confusion_matrix, classification_report
 
 
-def Model_Evaluation(test_generator, model_path, test_label_path):
-    # STEP_SIZE_TEST = test_generator.n // test_generator.batch_size
-    test_generator.reset()
-
+def Model_Evaluation(model_path,val_generator):
     # load model
-    model = load_model(model_path)
-    pred = model.predict_generator(test_generator, verbose=1)
-    y_pred = np.argmax(pred, axis=1)
-    y_true = pd.read_csv(test_label_path)
-    y_true = y_true['label'].values
-    report = classification_report(y_true, y_pred, digits=6)
-    print(report)
+    my_model = load_model(model_path)
+
+    pred_valid_y = my_model.predict(val_generator, verbose=True)
+    pred_valid_y_labels = np.argmax(pred_valid_y, axis=-1)
+    valid_labels = val_generator.labels
+
+    print(classification_report(valid_labels, pred_valid_y_labels))

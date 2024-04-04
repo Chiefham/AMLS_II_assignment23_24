@@ -11,6 +11,9 @@ def main():
     batch_size = 8
     target_size_dim = 300
     epochs = 10
+    train_efficientnet = 0
+    train_vgg = 0
+    train_resnet = 0
 
     # load data
     train_label_path = '../cassava-leaf-disease-classification/train.csv'
@@ -28,17 +31,20 @@ def main():
                              target_size_dim=target_size_dim)
 
     MODEL = Models(target_size_dim, train_gen, valid_gen, epochs)
-    # MODEL.EfficientNetB3()
-    # MODEL.VGG19()
-    # MODEL.ResNet101V2()
+    if train_efficientnet == 1:
+        MODEL.EfficientNetB3()
+    if train_vgg == 1:
+        MODEL.VGG19()
+    if train_resnet == 1:
+        MODEL.ResNet101V2()
 
     # model evaluation
-    efficientnetb3_path = './EfficientNetB3_WB.model'
-    vgg19_path = './VGG19_WB.model'
-    resnet101v2 = './ResNet101V2_WB.model'
+    efficientnetb3_path = './EfficientNetB3.model'
+    vgg19_path = './VGG19.model'
+    resnet101v2 = './ResNet101V2.model'
 
-    # Model_Evaluation(efficientnetb3_path, valid_gen)
-    # Model_Evaluation(vgg19_path,valid_gen)
+    Model_Evaluation(efficientnetb3_path, valid_gen)
+    Model_Evaluation(vgg19_path,valid_gen)
     Model_Evaluation(resnet101v2, valid_gen)
 
 

@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 
 
 def my_image_augmentation():
-    my_idg = ImageDataGenerator(  # rescale=1. / 255.0,
+    my_idg = ImageDataGenerator(
         horizontal_flip=True,
         vertical_flip=True,
         height_shift_range=0.2,

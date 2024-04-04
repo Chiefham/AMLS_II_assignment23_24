@@ -1,5 +1,4 @@
 from keras.applications import EfficientNetB3
-from keras.applications.vgg19 import VGG19
 import tensorflow as tf
 from keras.applications.vgg19 import VGG19
 from keras.callbacks import EarlyStopping
@@ -19,8 +18,7 @@ class Models:
         self.epochs = epochs
         self.class_weights_dict = cal_class_weight(train_generator)
 
-    def Model(self, base_model, optimizer, loss='categorical_crossentropy',
-              metrics=['categorical_accuracy']):
+    def Model(self, base_model, optimizer, metrics=['categorical_accuracy']):
         my_model = Sequential()
         my_model.add(base_model)
         my_model.add(GlobalAveragePooling2D())
@@ -36,8 +34,7 @@ class Models:
         )
         return my_model
 
-    def EfficientNetB3(self, drop_connect=0.4,
-                       layers_to_unfreeze=5):
+    def EfficientNetB3(self):
         model = EfficientNetB3(
             weights='imagenet',
             include_top=False,
@@ -64,7 +61,7 @@ class Models:
 
         my_model.save('EfficientNetB3_WB.model')
 
-    def VGG19(self,drop_connect=0.4,layers_to_unfreeze=5):
+    def VGG19(self):
         model = VGG19(
             weights='imagenet',
             include_top=False,
@@ -115,5 +112,3 @@ class Models:
         )
 
         my_model.save('ResNet101V2_WB.model')
-
-

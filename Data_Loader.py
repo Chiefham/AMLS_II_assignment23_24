@@ -1,6 +1,4 @@
 from keras.preprocessing.image import ImageDataGenerator
-import pandas as pd
-from sklearn.model_selection import train_test_split
 
 
 def my_image_augmentation():

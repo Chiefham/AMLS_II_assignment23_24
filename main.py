@@ -4,20 +4,21 @@ from train_test_split import train_test_split
 import pandas as pd
 from Model_Evaluation import Model_Evaluation
 from sklearn.model_selection import train_test_split
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def main():
     # global setting
     batch_size = 8
     target_size_dim = 300
     epochs = 10
-    train_efficientnet = 0
-    train_vgg = 0
-    train_resnet = 0
+    train_efficientnet = 1
+    train_vgg = 1
+    train_resnet = 1
 
     # load data
-    train_label_path = '../cassava-leaf-disease-classification/train.csv'
-    train_img_path = '../cassava-leaf-disease-classification/train_images/'
+    train_label_path = './Datasets/train.csv'
+    train_img_path = './Datasets/train_images/'
     df = pd.read_csv(train_label_path)
     df['path'] = train_img_path + df['image_id']
     df['label'] = df['label'].astype('str')

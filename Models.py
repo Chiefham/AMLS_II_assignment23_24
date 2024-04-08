@@ -8,6 +8,8 @@ from keras.losses import CategoricalCrossentropy
 from keras.models import Sequential
 from keras.applications.resnet_v2 import ResNet101V2
 from cal_class_weight import cal_class_weight
+from hist_plot import hist_plot
+import pickle
 
 
 class Models:
@@ -50,16 +52,18 @@ class Models:
         early = EarlyStopping(monitor='val_loss',
                               mode='min',
                               patience=2)
-
-        my_model.fit(
+        history = my_model.fit(
             self.train_generator,
             validation_data=self.val_generator,
             epochs=self.epochs,
             callbacks=[early],
-            class_weight=self.class_weights_dict
+            # class_weight=self.class_weights_dict
         )
+        my_model.save('EfficientNetB3.model')
 
-        my_model.save('EfficientNetB3_WB.model')
+        with open('EfficientNetB3_history.pkl', 'wb') as file:
+            pickle.dump(history.history, file)
+        hist_plot(history, 'EfficientNetB3')
 
     def VGG19(self):
         model = VGG19(
@@ -75,17 +79,21 @@ class Models:
         # fit
         early = EarlyStopping(monitor='val_loss',
                               mode='min',
-                              patience=3)
+                              patience=2)
 
-        my_model.fit(
+        history = my_model.fit(
             self.train_generator,
             validation_data=self.val_generator,
             epochs=self.epochs,
             callbacks=[early],
-            class_weight=self.class_weights_dict
+            # class_weight=self.class_weights_dict
         )
 
-        my_model.save('VGG19_WB.model')
+        my_model.save('VGG19.model')
+        with open('VGG19_history.pkl', 'wb') as file:
+            pickle.dump(history.history, file)
+
+        hist_plot(history, 'VGG19')
 
     def ResNet101V2(self):
         model = ResNet101V2(
@@ -101,14 +109,17 @@ class Models:
         # fit
         early = EarlyStopping(monitor='val_loss',
                               mode='min',
-                              patience=3)
+                              patience=2)
 
-        my_model.fit(
+        history = my_model.fit(
             self.train_generator,
             validation_data=self.val_generator,
             epochs=self.epochs,
             callbacks=[early],
-            class_weight=self.class_weights_dict
+            # class_weight=self.class_weights_dict
         )
+        my_model.save('ResNet101V2.model')
+        with open('ResNet101V2_history.pkl', 'wb') as file:
+            pickle.dump(history.history, file)
 
-        my_model.save('ResNet101V2_WB.model')
+        hist_plot(history, 'ResNet101V2')

@@ -9,4 +9,4 @@ def cal_class_weight(train_generator):
     class_weights_dict = {i: class_weights[i] for i, label in
                           enumerate(classes_to_predict)}
 
-    print(class_weights_dict)
+    return class_weights_dict

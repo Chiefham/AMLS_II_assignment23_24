@@ -1,6 +1,5 @@
 from Models import Models
-from Data_Loader import my_image_augmentation, make_train_gen, make_val_gen
-from train_test_split import train_test_split
+from Data_Loader import make_train_gen, make_val_gen
 import pandas as pd
 from Model_Evaluation import Model_Evaluation
 from sklearn.model_selection import train_test_split

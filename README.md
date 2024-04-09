@@ -7,6 +7,7 @@ Datasets:
 
 Function: Contains the image dataset, 
 image labels, and label category explanations.
+
 ---
 main.py:
 

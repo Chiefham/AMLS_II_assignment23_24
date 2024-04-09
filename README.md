@@ -2,15 +2,12 @@
 
 This document will explain the purpose of the files
 that appear in the GitHub repository
-----------------------------
+---
 Datasets:
+
 Function: Contains the image dataset, 
 image labels, and label category explanations.
-
 ---
-
-
-
 main.py:
 
 Function: main function. The function contains calls to other
@@ -28,7 +25,8 @@ to '. /EfficientNetB3.model and comment out
 Model_Evaluation(vgg19_path, valid_gen) and
 Model_Evaluation(resnet101v2, valid_gen),
 keeping only Model_Evaluation(efficientnetb3_path, valid_gen).
-----------------
+
+---
 Data_Loader.py:
 
 Function: Use ImageDataGenerator() to
@@ -44,6 +42,7 @@ interface that allows image data to be loaded from the
 directory in a batch fashion during training,
 which can be used to generate batches of image
 data and their corresponding labels while training the model.
+
 ---
 Models.py:
 
@@ -71,7 +70,6 @@ the EfficientNetB3 model is trained, and vice versa for the
 EfficientNetB3 model with weights.
 
 ---
-
 hist_plot.py:
 
 Function: It includes the hist_plot
@@ -79,12 +77,14 @@ custom method, which serves
 to draw the corresponding training
 history and save it as a .png picture
 based on the given training history and image name.
+
 ---
 cal_class_weight.py:
 
 Function: Calculate the corresponding class weights based 
 on the class distribution of the training data, and the
 return value is passed to the self.class_weights_dict in Models.py.
+
 ---
 *.model:
 
@@ -94,23 +94,27 @@ EfficientNetB3_WB.model, VGG19_WB.model,
 ResNet101V2_WB.model are model files with class 
 weights of the corresponding networks, all of which can be loaded using 
 load_model() function.
+
 ---
 *.pkl:
 
 Function: Same naming rule as for *.model files. 
 Each file is the training history of the corresponding network model.
+
 ---
 *.png:
 
 Function: Same naming rule as for *.model files. 
 Each file is a training history image drawn from the 
 corresponding .pkl file using the draw function in hist_plot.py
+
 ---
 *.txt:
 
 Function: The same naming rule as *.model files. Each file is 
 used for the evaluation results of the corresponding
 network model containing parameters such as accuracy, recall, etc.
+
 ---
 Data_Exploration.ipynb:
 
